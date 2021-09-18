@@ -9,7 +9,7 @@ from send2trash import send2trash
 os.environ['DISPLAY'] = ':0'
 
 
-broker = "192.168.0.205"
+broker = "127.0.0.1"
 port = 1883
 
 
@@ -25,11 +25,10 @@ def on_message(client, userdata, msg):
     if msg.topic == 'S1001/Places/Indoor/School/NeMember':
         face_ascade = cv2.CascadeClassifier(
             cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-        
+
         flag = True
         while flag:
-            cap = cv2.VideoCapture(
-                'http://192.168.0.209/capture', cv2.CAP_FFMPEG)
+            cap = cv2.VideoCapture(0)
             _, frame = cap.read()
 
             faces = face_ascade.detectMultiScale(frame, 1.3, 5)

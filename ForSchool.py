@@ -18,7 +18,7 @@ import requests
 import json
 import asyncio
 import socketio
-
+import sys
 sio = socketio.Client()
 sio.connect('http://localhost:2000')
 
@@ -29,22 +29,20 @@ os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
 broker = "192.168.0.205"
 port = 1883
 token = ''
-# client1 = ''
-# getToken = requests.get('https://gym.iotsol.pk/token')
-# getToken = getToken.json()
-# my_headers = {'Authorization': 'Bearer '+getToken['token']}
-# print(my_headers)
+Train = True
 
 
 def on_message(client, userdata, msg):
+    global Train
     print(msg.payload.decode())
     print(msg.topic)
-    if msg.topic == 'G1001/Places/Indoor/Gym/Train':
+    if msg.topic == 'S1001/Places/Indoor/Train':
         if msg.payload.decode() == 'Train':
-            # with tf.Graph().as_default():
-            with tf.Session() as sess:
-                sess.close()
-                main(parser.parse_args())
+            print('exit')
+            os._exit(1)
+            sys.exit('listofitems not long enough')
+            raise SystemExit
+            exit()
 
 
 class IdData:
@@ -192,9 +190,9 @@ async def threadedFunc(frame, mtcnn, images_placeholder, phase_train_placeholder
 
 
 async def main(args):
+
     with tf.Graph().as_default():
         with tf.Session() as sess:
-
             # Setup models
             mtcnn = detect_and_align.create_mtcnn(sess, None)
             model = './folder/model.pb'
@@ -203,7 +201,6 @@ async def main(args):
             images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
             embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
             phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
-
             # Load anchor IDs
             id_data = IdData(
                 id_folder, mtcnn, sess, embeddings, images_placeholder, phase_train_placeholder, args.threshold
@@ -212,7 +209,7 @@ async def main(args):
                 cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
             client1 = paho.Client("ModelTrainClient")
             client1.connect(broker, port)
-            client1.subscribe("G1001/Places/Indoor/Gym/Train")
+            client1.subscribe("S1001/Places/Indoor/Train")
             client1.on_message = on_message
             client1.loop_start()
             while True:
